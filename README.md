@@ -1,4 +1,4 @@
-<h1 align="center">「👻」 Spooky v1.0</h1>
+# 「👻」 Spooky v1.0
 
 <p align="center">API Key and Secret Scanner</p>
 
@@ -11,6 +11,7 @@ A powerful Go-based security tool designed to detect exposed API keys and secret
 - Configurable percentage-based scanning
 - Category-based secret detection
 - Detailed statistics and reporting
+- JSON output support
 - Cross-platform support
 
 ## Secret Categories
@@ -81,6 +82,7 @@ Spooky can detect a wide range of secrets across multiple categories:
 - `-m`: Use Majestic Million list for scanning
 - `-p`: Percentage of Majestic Million to scan (1-100, default: 100)
 - `-c`: Category to scan (AWS, API, Cloud, Payment, Database, PrivateKey, Social, Communication, Service, or 'all')
+- `-o`: Output results to JSON file (e.g., "results.json")
 
 ## Usage Examples
 
@@ -104,10 +106,43 @@ Scan only for AWS credentials:
 cat urls.txt | ./spooky -c AWS
 ```
 
-Detailed scan for payment secrets:
+Detailed scan for payment secrets with JSON output:
 ```bash
-cat urls.txt | ./spooky -c Payment -d
+cat urls.txt | ./spooky -c Payment -d -o results.json
 ```
+
+## JSON Output Format
+
+When using the `-o` flag, Spooky outputs findings in a structured JSON format. Each finding includes the URL where the secret was found, the category of the secret, and the detected secret value:
+
+```json
+{
+  "findings": [
+    {
+      "url": "https://example.com/script.js",
+      "category": "AWS",
+      "secret": "[EXAMPLE-AWS-KEY]"
+    },
+    {
+      "url": "https://example.com/config.js",
+      "category": "Payment",
+      "secret": "[EXAMPLE-STRIPE-KEY]"
+    },
+    {
+      "url": "https://example.com/app.js",
+      "category": "Database",
+      "secret": "[EXAMPLE-DATABASE-CONNECTION-STRING]"
+    }
+  ]
+}
+```
+
+This JSON format makes it easy to:
+- Process findings programmatically
+- Integrate with other security tools
+- Generate custom reports
+- Track findings across multiple scans
+- Filter and analyze results by category or URL
 
 ## Install
 
