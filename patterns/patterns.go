@@ -69,7 +69,7 @@ var (
 		`(?i)sk_test_[0-9a-zA-Z]{32}`,                    // Stripe Test Key
 	}
 
-	// Communication Service patterns - Improved to reduce false positives
+	// Communication Service patterns
 	CommunicationPatterns = []string{
 		`(?i)(?:twilio|TWILIO).{0,20}SK[0-9a-fA-F]{32}`,                                                // Twilio API Key (requires "twilio" context)
 		`(?i)(?:twilio|TWILIO).{0,20}AC[a-zA-Z0-9]{32}`,                                                // Twilio Account SID (requires "twilio" context)
@@ -107,6 +107,46 @@ var (
 		`(?i)projects/.*/secrets/.*`,                             // Google Cloud Secret Manager
 		`(?i)projects/.*/locations/.*/keyRings/.*/cryptoKeys/.*`, // Google Cloud KMS
 	}
+
+	// Framework patterns
+	FrameworkPatterns = []string{
+		// Django
+		`(?i)django.*secret.*key.*['"][0-9a-zA-Z]{40,}['"]`,    // Django Secret Key
+		`(?i)django.*signing.*key.*['"][0-9a-zA-Z]{40,}['"]`,   // Django Signing Key
+		`(?i)django.*cookie.*secret.*['"][0-9a-zA-Z]{40,}['"]`, // Django Cookie Secret
+
+		// Flask
+		`(?i)flask.*secret.*key.*['"][0-9a-zA-Z]{40,}['"]`,  // Flask Secret Key
+		`(?i)flask.*session.*key.*['"][0-9a-zA-Z]{40,}['"]`, // Flask Session Key
+
+		// Express
+		`(?i)express.*session.*secret.*['"][0-9a-zA-Z]{40,}['"]`, // Express Session Secret
+		`(?i)express.*cookie.*secret.*['"][0-9a-zA-Z]{40,}['"]`,  // Express Cookie Secret
+
+		// Laravel
+		`(?i)APP_KEY.*=.*base64:[A-Za-z0-9+/]{40,}`,  // Laravel App Key
+		`(?i)laravel.*key.*['"][0-9a-zA-Z]{40,}['"]`, // Laravel Key
+
+		// Rails
+		`(?i)rails.*secret.*key.*base.*['"][0-9a-zA-Z]{40,}['"]`, // Rails Secret Key Base
+		`(?i)rails.*master.*key.*['"][0-9a-zA-Z]{40,}['"]`,       // Rails Master Key
+
+		// ASP.NET
+		`(?i)ViewState.*[0-9a-f]{64,}`,                 // ASP.NET ViewState
+		`(?i)__VIEWSTATE.*[0-9a-f]{64,}`,               // ASP.NET ViewState Field
+		`(?i)machinekey.*validationkey.*[0-9a-f]{64,}`, // ASP.NET Machine Key
+
+		// Symfony
+		`(?i)symfony.*secret.*['"][0-9a-zA-Z]{40,}['"]`, // Symfony Secret
+		`(?i)APP_SECRET.*=.*[0-9a-zA-Z]{40,}`,           // Symfony App Secret
+
+		// JSF
+		`(?i)jsf.*view.*state.*secret.*['"][0-9a-zA-Z]{40,}['"]`, // JSF ViewState Secret
+
+		// Telerik
+		`(?i)telerik.*encryption.*key.*['"][0-9a-zA-Z]{40,}['"]`, // Telerik Encryption Key
+		`(?i)telerik.*hash.*key.*['"][0-9a-zA-Z]{40,}['"]`,       // Telerik Hash Key
+	}
 )
 
 // GetAllPatterns returns all patterns organized by category
@@ -121,5 +161,6 @@ func GetAllPatterns() map[string][]string {
 		"Communication": CommunicationPatterns,
 		"Service":       ServicePatterns,
 		"Cloud":         CloudPatterns,
+		"Framework":     FrameworkPatterns,
 	}
 }
