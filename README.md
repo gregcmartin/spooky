@@ -1,4 +1,4 @@
-# 「👻」 Spooky v1.1
+# 「👻」 Spooky v1.15
 
 <p align="center">API Key and Secret Scanner</p>
 
