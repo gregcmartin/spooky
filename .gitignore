@@ -32,3 +32,6 @@ build/
 ehthumbs.db
 Thumbs.db
 test.html
+
+# JSON output
+results.json
