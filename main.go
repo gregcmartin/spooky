@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"crypto/tls"
 	"encoding/csv"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
@@ -27,7 +28,9 @@ var (
 	majestic *bool
 	percent  *int
 	category string
+	jsonFile *string
 	stats    = &Statistics{mu: &sync.Mutex{}}
+	findings = &Findings{mu: &sync.Mutex{}}
 )
 
 // Statistics tracks scanning metrics
@@ -37,6 +40,25 @@ type Statistics struct {
 	ProcessedBytes int64
 	Categories     map[string]int
 	mu             *sync.Mutex
+}
+
+// SecretFinding represents a single secret finding
+type SecretFinding struct {
+	URL      string `json:"url"`
+	Category string `json:"category"`
+	Secret   string `json:"secret"`
+}
+
+// Findings stores all secret findings
+type Findings struct {
+	Items []SecretFinding `json:"findings"`
+	mu    *sync.Mutex
+}
+
+func (f *Findings) add(finding SecretFinding) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.Items = append(f.Items, finding)
 }
 
 // CompiledPatterns holds pre-compiled regex patterns
@@ -56,6 +78,17 @@ func (s *Statistics) increment(category string) {
 }
 
 const majesticURL = "https://downloads.majestic.com/majestic_million.csv"
+
+// drawProgressBar creates an ASCII progress bar
+func drawProgressBar(current, total int) string {
+	width := 40
+	progress := float64(current) / float64(total)
+	filled := int(progress * float64(width))
+	percentage := int(progress * 100)
+
+	bar := strings.Repeat("█", filled) + strings.Repeat("░", width-filled)
+	return fmt.Sprintf("\r\033[34m[*]\033[37m Progress: [%s] %d%% (%d/%d domains)", bar, percentage, current, total)
+}
 
 // compilePatterns pre-compiles all regex patterns for better performance
 func compilePatterns() []CompiledPatterns {
@@ -84,7 +117,9 @@ func compilePatterns() []CompiledPatterns {
 }
 
 func processMajesticStream(urls chan<- string) error {
-	fmt.Println("\033[34m[*]\033[37m Downloading Majestic Million list...")
+	if !*silent {
+		fmt.Println("\033[34m[*]\033[37m Downloading Majestic Million list...")
+	}
 
 	resp, err := http.Get(majesticURL)
 	if err != nil {
@@ -103,6 +138,17 @@ func processMajesticStream(urls chan<- string) error {
 	if *percent > 0 && *percent < 100 {
 		maxDomains = (maxDomains * *percent) / 100
 	}
+
+	ticker := time.NewTicker(100 * time.Millisecond)
+	defer ticker.Stop()
+
+	go func() {
+		for range ticker.C {
+			if !*silent {
+				fmt.Print(drawProgressBar(total, maxDomains))
+			}
+		}
+	}()
 
 	for {
 		record, err := reader.Read()
@@ -123,11 +169,14 @@ func processMajesticStream(urls chan<- string) error {
 		}
 	}
 
-	fmt.Printf("\033[34m[*]\033[37m Processed %d domains\n", total)
+	if !*silent {
+		fmt.Print(drawProgressBar(total, maxDomains))
+		fmt.Printf("\n\033[34m[*]\033[37m Processed %d domains\n", total)
+	}
 	return nil
 }
 
-func scanForSecrets(content string, compiledPatterns []CompiledPatterns) {
+func scanForSecrets(urlStr string, content string, compiledPatterns []CompiledPatterns) {
 	stats.mu.Lock()
 	stats.ProcessedBytes += int64(len(content))
 	stats.ScannedURLs++
@@ -145,6 +194,11 @@ func scanForSecrets(content string, compiledPatterns []CompiledPatterns) {
 					}
 				}
 				stats.increment(cp.Category)
+				findings.add(SecretFinding{
+					URL:      urlStr,
+					Category: cp.Category,
+					Secret:   match,
+				})
 			}
 		}
 	}
@@ -212,7 +266,7 @@ func req(urlStr string, compiledPatterns []CompiledPatterns) {
 		content = string(body)
 	}
 
-	scanForSecrets(content, compiledPatterns)
+	scanForSecrets(urlStr, content, compiledPatterns)
 }
 
 func init() {
@@ -222,6 +276,7 @@ func init() {
 	detailed = flag.Bool("d", false, "detailed mode")
 	majestic = flag.Bool("m", false, "use Majestic Million list")
 	percent = flag.Int("p", 100, "percentage of Majestic Million to scan (1-100)")
+	jsonFile = flag.String("o", "", "output results to JSON file")
 	flag.StringVar(&category, "c", "all", "category to scan (AWS, API, Cloud, Payment, Database, PrivateKey, Social, Communication, Service, or 'all')")
 }
 
@@ -249,6 +304,27 @@ func printStats() {
 			fmt.Printf("    - %s: %d\n", category, count)
 		}
 	}
+}
+
+func writeJSONOutput() error {
+	if *jsonFile == "" {
+		return nil
+	}
+
+	data, err := json.MarshalIndent(findings, "", "  ")
+	if err != nil {
+		return fmt.Errorf("error marshaling JSON: %v", err)
+	}
+
+	err = ioutil.WriteFile(*jsonFile, data, 0644)
+	if err != nil {
+		return fmt.Errorf("error writing JSON file: %v", err)
+	}
+
+	if !*silent {
+		fmt.Printf("\n\033[34m[*]\033[37m Results written to: %s\n", *jsonFile)
+	}
+	return nil
 }
 
 func main() {
@@ -297,5 +373,10 @@ func main() {
 		duration := time.Since(startTime)
 		fmt.Printf("\n\033[34m[*]\033[37m Scan completed in %.2f seconds\n", duration.Seconds())
 		printStats()
+	}
+
+	if err := writeJSONOutput(); err != nil {
+		fmt.Printf("\033[31m[-]\033[37m %v\n", err)
+		os.Exit(1)
 	}
 }
