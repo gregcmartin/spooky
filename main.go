@@ -86,7 +86,7 @@ func banner() {
 	 ███████║██║     ╚██████╔╝╚██████╔╝██║  ██╗   ██║   
 	 ╚══════╝╚═╝      ╚═════╝  ╚═════╝ ╚═╝  ╚═╝   ╚═╝   
 			   ` + "\033[31m[\033[37mAPI Key Scanner\033[31m]\n" +
-		`                             ` + "\033[31m[\033[37mVersion 1.3\033[31m]\n")
+		`                             ` + "\033[31m[\033[37mVersion 1.4\033[31m]\n")
 }
 
 // compilePatterns pre-compiles all regex patterns for better performance
@@ -215,19 +215,27 @@ func extractText(content string) string {
 }
 
 // findMatchLocation finds the line number and context of a match in the content
-func findMatchLocation(content string, match string) string {
+func findMatchLocation(urlStr, content string, match string) string {
+	if match == "" || content == "" {
+		return urlStr
+	}
+
 	lines := strings.Split(content, "\n")
 	for i, line := range lines {
 		if strings.Contains(line, match) {
 			lineNum := i + 1
-			return fmt.Sprintf("line %d", lineNum)
+			return fmt.Sprintf("%s#L%d", urlStr, lineNum)
 		}
 	}
-	return "unknown location"
+	return urlStr
 }
 
 // ScanContent scans content for secrets
 func (s *Scanner) ScanContent(urlStr string, content string) {
+	if content == "" {
+		return
+	}
+
 	// Extract text content while preserving script and style content
 	cleanContent := extractText(content)
 	s.Stats.IncrementScanned(int64(len(cleanContent)))
@@ -241,13 +249,14 @@ func (s *Scanner) ScanContent(urlStr string, content string) {
 			}
 
 			// Find the location of the match
-			location := findMatchLocation(content, match)
+			location := findMatchLocation(urlStr, content, match)
+			displayLocation := fmt.Sprintf("line %d", strings.Count(content[:strings.Index(content, match)], "\n")+1)
 
 			if !s.Silent && !s.Majestic {
 				if s.Detailed {
-					fmt.Printf("\033[32m[+]\033[37m Found %s (%s) at %s: %s\n", cp.Category, cp.PatternType, location, match)
+					fmt.Printf("\033[32m[+]\033[37m Found %s (%s) at %s: %s\n", cp.Category, cp.PatternType, displayLocation, match)
 				} else {
-					fmt.Printf("\033[32m[+]\033[37m Found %s (%s) at %s\n", cp.Category, cp.PatternType, location)
+					fmt.Printf("\033[32m[+]\033[37m Found %s (%s) at %s\n", cp.Category, cp.PatternType, displayLocation)
 				}
 			}
 			s.Stats.Increment(cp.Category)
