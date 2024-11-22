@@ -99,13 +99,13 @@ var (
 
 	// Cloud Service patterns
 	CloudPatterns = []string{
-		`(?i)AKIA[0-9A-Z]{16}`,                                   // AWS Access Key ID
-		`(?i)[0-9a-zA-Z/+]{40}`,                                  // AWS Secret Key
-		`(?i)ya29\.[0-9A-Za-z_\-]+`,                              // Google OAuth
-		`(?i)AIza[0-9A-Za-z\-_]{35}`,                             // Google API Key
-		`(?i)[0-9a-zA-Z]{32}-r[0-9a-zA-Z]{4}`,                    // Google Cloud Platform OAuth
-		`(?i)projects/.*/secrets/.*`,                             // Google Cloud Secret Manager
-		`(?i)projects/.*/locations/.*/keyRings/.*/cryptoKeys/.*`, // Google Cloud KMS
+		`(?i)AKIA[0-9A-Z]{16}`, // AWS Access Key ID
+		`(?i)(?:AWS|aws).{0,20}(?:key|KEY).{0,20}['"][0-9a-zA-Z/+]{40}['"]`,      // AWS Secret Key
+		`(?i)ya29\.[0-9A-Za-z_\-]+`,                                              // Google OAuth
+		`(?i)AIza[0-9A-Za-z\-_]{35}`,                                             // Google API Key
+		`(?i)[0-9a-zA-Z]{32}-r[0-9a-zA-Z]{4}`,                                    // Google Cloud Platform OAuth
+		`(?i)projects/[^/]+/secrets/[^/\s'"]+`,                                   // Google Cloud Secret Manager
+		`(?i)projects/[^/]+/locations/[^/]+/keyRings/[^/]+/cryptoKeys/[^/\s'"]+`, // Google Cloud KMS
 	}
 
 	// Framework patterns

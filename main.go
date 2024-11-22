@@ -197,19 +197,35 @@ func compilePatterns(category string) []CompiledPatterns {
 			continue
 		}
 
-		patterns := make([]*regexp.Regexp, 0, len(patternList))
 		for _, p := range patternList {
+			// Get pattern type before compiling
+			patternType := getPatternType(cat, p)
+			if patternType == "" {
+				continue // Skip patterns that would result in unknown type
+			}
+
 			re, err := regexp.Compile(p)
 			if err != nil {
 				continue
 			}
-			patterns = append(patterns, re)
+
+			// Find existing category in compiled patterns or create new one
+			var found bool
+			for i := range compiled {
+				if compiled[i].Category == cat {
+					compiled[i].Patterns = append(compiled[i].Patterns, re)
+					found = true
+					break
+				}
+			}
+			if !found {
+				compiled = append(compiled, CompiledPatterns{
+					Category:    cat,
+					PatternType: patternType,
+					Patterns:    []*regexp.Regexp{re},
+				})
+			}
 		}
-		compiled = append(compiled, CompiledPatterns{
-			Category:    cat,
-			Patterns:    patterns,
-			PatternType: getPatternType(cat, patternList[0]),
-		})
 	}
 	return compiled
 }
@@ -314,6 +330,18 @@ func extractText(content string) string {
 	return textContent.String()
 }
 
+// findMatchLocation finds the line number and context of a match in the content
+func findMatchLocation(content string, match string) string {
+	lines := strings.Split(content, "\n")
+	for i, line := range lines {
+		if strings.Contains(line, match) {
+			lineNum := i + 1
+			return fmt.Sprintf("line %d", lineNum)
+		}
+	}
+	return "unknown location"
+}
+
 // ScanContent scans content for secrets
 func (s *Scanner) ScanContent(urlStr string, content string) {
 	// Extract text content while preserving script and style content
@@ -329,21 +357,18 @@ func (s *Scanner) ScanContent(urlStr string, content string) {
 					continue
 				}
 
-				// Get pattern type and skip if unknown
-				patternType := getPatternType(cp.Category, pattern.String())
-				if patternType == "" {
-					continue // Skip matches with unknown patterns
-				}
+				// Find the location of the match
+				uri := findMatchLocation(content, match)
 
 				if !s.Silent && !s.Majestic {
 					if s.Detailed {
-						fmt.Printf("\033[32m[+]\033[37m Found %s (%s): %s\n", cp.Category, patternType, match)
+						fmt.Printf("\033[32m[+]\033[37m Found %s (%s) at %s: %s\n", cp.Category, cp.PatternType, uri, match)
 					} else {
-						fmt.Printf("\033[32m[+]\033[37m Found %s (%s)\n", cp.Category, patternType)
+						fmt.Printf("\033[32m[+]\033[37m Found %s (%s) at %s\n", cp.Category, cp.PatternType, uri)
 					}
 				}
 				s.Stats.Increment(cp.Category)
-				s.Findings.Add(urlStr, cp.Category, patternType, match)
+				s.Findings.Add(urlStr, cp.Category, cp.PatternType, match, uri)
 			}
 		}
 	}
