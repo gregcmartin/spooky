@@ -26,7 +26,7 @@ import (
 type CompiledPatterns struct {
 	Category    string
 	PatternType string
-	Patterns    []*regexp.Regexp
+	Pattern     *regexp.Regexp
 }
 
 // Scanner handles the scanning operations
@@ -89,144 +89,28 @@ func banner() {
 		`                             ` + "\033[31m[\033[37mVersion 1.2\033[31m]\n")
 }
 
-// getPatternType returns a descriptive name for each pattern type
-func getPatternType(category string, pattern string) string {
-	switch {
-	// AWS Patterns
-	case strings.Contains(pattern, "AKIA"):
-		return "AWS Access Key ID"
-	case strings.Contains(pattern, "aws_access_key_id"):
-		return "AWS Access Key ID"
-	case strings.Contains(pattern, "aws_secret_access_key"):
-		return "AWS Secret Access Key"
-
-	// API Patterns
-	case strings.Contains(pattern, "bearer"):
-		return "Bearer Token"
-	case strings.Contains(pattern, "authorization"):
-		return "Authorization Token"
-	case strings.Contains(pattern, "api[_-]?key"):
-		return "Generic API Key"
-	case strings.Contains(pattern, "client[_-]?secret"):
-		return "Client Secret"
-
-	// Payment Patterns
-	case strings.Contains(pattern, "sk_live"):
-		return "Stripe Secret Key"
-	case strings.Contains(pattern, "pk_live"):
-		return "Stripe Public Key"
-	case strings.Contains(pattern, "rk_live"):
-		return "Stripe Restricted Key"
-	case strings.Contains(pattern, "sq0csp"):
-		return "Square Access Token"
-	case strings.Contains(pattern, "sqOatp"):
-		return "Square OAuth Token"
-
-	// Database Patterns
-	case strings.Contains(pattern, "mongodb"):
-		return "MongoDB Connection String"
-	case strings.Contains(pattern, "mysql"):
-		return "MySQL Connection String"
-	case strings.Contains(pattern, "postgres"):
-		return "PostgreSQL Connection String"
-	case strings.Contains(pattern, "redis"):
-		return "Redis Connection String"
-
-	// Private Key Patterns
-	case strings.Contains(pattern, "RSA"):
-		return "RSA Private Key"
-	case strings.Contains(pattern, "OPENSSH"):
-		return "OpenSSH Private Key"
-	case strings.Contains(pattern, "PGP"):
-		return "PGP Private Key"
-	case strings.Contains(pattern, "PRIVATE KEY"):
-		return "Generic Private Key"
-
-	// Social Patterns
-	case strings.Contains(pattern, "ghp_"):
-		return "GitHub Personal Access Token"
-	case strings.Contains(pattern, "github_pat"):
-		return "GitHub Fine-grained Token"
-	case strings.Contains(pattern, "xox"):
-		return "Slack Token"
-	case strings.Contains(pattern, "EAACEdEose0cBA"):
-		return "Facebook Access Token"
-	case strings.Contains(pattern, "AIza"):
-		return "Google API Key"
-
-	// Communication Patterns
-	case strings.Contains(pattern, "twilio") && strings.Contains(pattern, "SK"):
-		return "Twilio API Key"
-	case strings.Contains(pattern, "twilio") && strings.Contains(pattern, "AC"):
-		return "Twilio Account SID"
-	case strings.Contains(pattern, "SG."):
-		return "SendGrid API Key"
-	case strings.Contains(pattern, "mailgun"):
-		return "Mailgun API Key"
-	case strings.Contains(pattern, "mailchimp"):
-		return "Mailchimp API Key"
-	case strings.Contains(pattern, "postmark"):
-		return "Postmark Server Token"
-
-	// Service Patterns
-	case strings.Contains(pattern, "npm_"):
-		return "NPM Token"
-	case strings.Contains(pattern, "docker_auth"):
-		return "Docker Auth Configuration"
-	case strings.Contains(pattern, "TRAVIS"):
-		return "Travis CI Token"
-	case strings.Contains(pattern, "circleci"):
-		return "Circle CI Token"
-	case strings.Contains(pattern, "sonar"):
-		return "SonarQube Token"
-	case strings.Contains(pattern, "VAULT_TOKEN"):
-		return "Vault Token"
-
-	default:
-		return "" // Return empty string for unknown patterns
-	}
-}
-
 // compilePatterns pre-compiles all regex patterns for better performance
 func compilePatterns(category string) []CompiledPatterns {
-	allPatterns := patterns.GetAllPatterns()
-	compiled := make([]CompiledPatterns, 0, len(allPatterns))
+	var compiled []CompiledPatterns
 
-	for cat, patternList := range allPatterns {
-		if category != "" && category != "all" && !strings.EqualFold(category, cat) {
+	for _, pt := range patterns.AllPatternTypes {
+		// Skip if category doesn't match (unless category is "all")
+		if category != "all" && !strings.EqualFold(category, pt.Category) {
 			continue
 		}
 
-		for _, p := range patternList {
-			// Get pattern type before compiling
-			patternType := getPatternType(cat, p)
-			if patternType == "" {
-				continue // Skip patterns that would result in unknown type
-			}
-
-			re, err := regexp.Compile(p)
-			if err != nil {
-				continue
-			}
-
-			// Find existing category in compiled patterns or create new one
-			var found bool
-			for i := range compiled {
-				if compiled[i].Category == cat {
-					compiled[i].Patterns = append(compiled[i].Patterns, re)
-					found = true
-					break
-				}
-			}
-			if !found {
-				compiled = append(compiled, CompiledPatterns{
-					Category:    cat,
-					PatternType: patternType,
-					Patterns:    []*regexp.Regexp{re},
-				})
-			}
+		re, err := regexp.Compile(pt.Pattern)
+		if err != nil {
+			continue
 		}
+
+		compiled = append(compiled, CompiledPatterns{
+			Category:    pt.Category,
+			PatternType: pt.Name,
+			Pattern:     re,
+		})
 	}
+
 	return compiled
 }
 
@@ -349,27 +233,25 @@ func (s *Scanner) ScanContent(urlStr string, content string) {
 	s.Stats.IncrementScanned(int64(len(cleanContent)))
 
 	for _, cp := range s.CompiledPats {
-		for _, pattern := range cp.Patterns {
-			matches := pattern.FindAllString(cleanContent, -1)
-			for _, match := range matches {
-				// Skip matches that contain HTML tags
-				if strings.Contains(match, "<") || strings.Contains(match, ">") {
-					continue
-				}
-
-				// Find the location of the match
-				uri := findMatchLocation(content, match)
-
-				if !s.Silent && !s.Majestic {
-					if s.Detailed {
-						fmt.Printf("\033[32m[+]\033[37m Found %s (%s) at %s: %s\n", cp.Category, cp.PatternType, uri, match)
-					} else {
-						fmt.Printf("\033[32m[+]\033[37m Found %s (%s) at %s\n", cp.Category, cp.PatternType, uri)
-					}
-				}
-				s.Stats.Increment(cp.Category)
-				s.Findings.Add(urlStr, cp.Category, cp.PatternType, match, uri)
+		matches := cp.Pattern.FindAllString(cleanContent, -1)
+		for _, match := range matches {
+			// Skip matches that contain HTML tags
+			if strings.Contains(match, "<") || strings.Contains(match, ">") {
+				continue
 			}
+
+			// Find the location of the match
+			location := findMatchLocation(content, match)
+
+			if !s.Silent && !s.Majestic {
+				if s.Detailed {
+					fmt.Printf("\033[32m[+]\033[37m Found %s (%s) at %s: %s\n", cp.Category, cp.PatternType, location, match)
+				} else {
+					fmt.Printf("\033[32m[+]\033[37m Found %s (%s) at %s\n", cp.Category, cp.PatternType, location)
+				}
+			}
+			s.Stats.Increment(cp.Category)
+			s.Findings.Add(urlStr, cp.Category, cp.PatternType, match, location)
 		}
 	}
 }
