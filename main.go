@@ -183,7 +183,7 @@ func getPatternType(category string, pattern string) string {
 		return "Vault Token"
 
 	default:
-		return "Unknown Pattern"
+		return "" // Return empty string instead of "Unknown Pattern"
 	}
 }
 
@@ -330,6 +330,10 @@ func (s *Scanner) ScanContent(urlStr string, content string) {
 				}
 
 				patternType := getPatternType(cp.Category, pattern.String())
+				if patternType == "" {
+					continue // Skip matches with unknown patterns
+				}
+
 				if !s.Silent && !s.Majestic {
 					if s.Detailed {
 						fmt.Printf("\033[32m[+]\033[37m Found %s (%s): %s\n", cp.Category, patternType, match)
