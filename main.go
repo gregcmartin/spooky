@@ -183,7 +183,7 @@ func getPatternType(category string, pattern string) string {
 		return "Vault Token"
 
 	default:
-		return "" // Return empty string instead of "Unknown Pattern"
+		return "" // Return empty string for unknown patterns
 	}
 }
 
@@ -324,11 +324,12 @@ func (s *Scanner) ScanContent(urlStr string, content string) {
 		for _, pattern := range cp.Patterns {
 			matches := pattern.FindAllString(cleanContent, -1)
 			for _, match := range matches {
-				// Additional validation to ensure match isn't just HTML
+				// Skip matches that contain HTML tags
 				if strings.Contains(match, "<") || strings.Contains(match, ">") {
-					continue // Skip matches that contain HTML tags
+					continue
 				}
 
+				// Get pattern type and skip if unknown
 				patternType := getPatternType(cp.Category, pattern.String())
 				if patternType == "" {
 					continue // Skip matches with unknown patterns
