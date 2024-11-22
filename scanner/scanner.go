@@ -12,6 +12,8 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/net/html"
+
 	"github.com/gregcmartin/spooky/models"
 	"github.com/gregcmartin/spooky/patterns"
 )
@@ -242,14 +244,53 @@ func drawProgressBar(current, total int) string {
 	return fmt.Sprintf("\r\033[34m[*]\033[37m Progress: [%s] %d%% (%d/%d domains)", bar, percentage, current, total)
 }
 
+// extractText extracts text content from HTML while preserving script and style content
+func extractText(content string) string {
+	doc, err := html.Parse(strings.NewReader(content))
+	if err != nil {
+		return content // Return original content if parsing fails
+	}
+
+	var textContent strings.Builder
+
+	var extract func(*html.Node)
+	extract = func(n *html.Node) {
+		if n.Type == html.TextNode {
+			textContent.WriteString(n.Data)
+			textContent.WriteString(" ")
+		} else if n.Type == html.ElementNode && (n.Data == "script" || n.Data == "style") {
+			// Preserve content of script and style tags
+			for c := n.FirstChild; c != nil; c = c.NextSibling {
+				if c.Type == html.TextNode {
+					textContent.WriteString(c.Data)
+					textContent.WriteString(" ")
+				}
+			}
+		}
+		for c := n.FirstChild; c != nil; c = c.NextSibling {
+			extract(c)
+		}
+	}
+
+	extract(doc)
+	return textContent.String()
+}
+
 // ScanContent scans content for secrets
 func (s *Scanner) ScanContent(urlStr string, content string) {
-	s.Stats.IncrementScanned(int64(len(content)))
+	// Extract text content while preserving script and style content
+	cleanContent := extractText(content)
+	s.Stats.IncrementScanned(int64(len(cleanContent)))
 
 	for _, cp := range s.CompiledPats {
 		for _, pattern := range cp.Patterns {
-			matches := pattern.FindAllString(content, -1)
+			matches := pattern.FindAllString(cleanContent, -1)
 			for _, match := range matches {
+				// Additional validation to ensure match isn't just HTML
+				if strings.Contains(match, "<") || strings.Contains(match, ">") {
+					continue // Skip matches that contain HTML tags
+				}
+
 				patternType := getPatternType(cp.Category, pattern.String())
 				if !s.Silent && !s.Majestic {
 					if s.Detailed {
