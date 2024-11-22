@@ -2,6 +2,7 @@ package models
 
 import (
 	"encoding/json"
+	"os"
 	"sync"
 )
 
@@ -19,6 +20,7 @@ type Secret struct {
 	Category    string `json:"category"`
 	PatternType string `json:"pattern_type"`
 	Value       string `json:"value"`
+	URI         string `json:"uri"`
 }
 
 // URLFindings represents all findings for a specific URL
@@ -29,16 +31,47 @@ type URLFindings struct {
 
 // Findings stores all secret findings grouped by URL
 type Findings struct {
-	Sites map[string]*URLFindings `json:"-"` // Internal map for grouping
-	Mu    *sync.Mutex             // Exported for scanner package
+	Sites      map[string]*URLFindings `json:"-"` // Internal map for grouping
+	Mu         *sync.Mutex             // Exported for scanner package
+	jsonFile   *os.File                // File handle for realtime JSON writing
+	firstEntry bool                    // Track if this is the first entry
 }
 
 // NewFindings creates a new Findings instance
 func NewFindings() *Findings {
 	return &Findings{
-		Sites: make(map[string]*URLFindings),
-		Mu:    &sync.Mutex{},
+		Sites:      make(map[string]*URLFindings),
+		Mu:         &sync.Mutex{},
+		firstEntry: true,
 	}
+}
+
+// InitJSONFile initializes the JSON file for realtime writing
+func (f *Findings) InitJSONFile(filename string) error {
+	var err error
+	f.jsonFile, err = os.Create(filename)
+	if err != nil {
+		return err
+	}
+
+	// Write the opening bracket for the JSON array
+	_, err = f.jsonFile.WriteString("[\n")
+	return err
+}
+
+// CloseJSONFile closes the JSON file and writes the final bracket
+func (f *Findings) CloseJSONFile() error {
+	if f.jsonFile == nil {
+		return nil
+	}
+
+	// Write the closing bracket
+	_, err := f.jsonFile.WriteString("\n]")
+	if err != nil {
+		return err
+	}
+
+	return f.jsonFile.Close()
 }
 
 // NewStatistics creates a new Statistics instance
@@ -62,8 +95,8 @@ func (f *Findings) MarshalJSON() ([]byte, error) {
 	return json.Marshal(sites)
 }
 
-// Add adds a new secret finding
-func (f *Findings) Add(urlStr, category, patternType, secret string) {
+// Add adds a new secret finding and writes it to JSON file immediately
+func (f *Findings) Add(urlStr, category, patternType, secret, uri string) {
 	f.Mu.Lock()
 	defer f.Mu.Unlock()
 
@@ -78,11 +111,31 @@ func (f *Findings) Add(urlStr, category, patternType, secret string) {
 		}
 	}
 
-	f.Sites[urlStr].Secrets = append(f.Sites[urlStr].Secrets, Secret{
+	newSecret := Secret{
 		Category:    category,
 		PatternType: patternType,
 		Value:       secret,
-	})
+		URI:         uri,
+	}
+
+	f.Sites[urlStr].Secrets = append(f.Sites[urlStr].Secrets, newSecret)
+
+	// Write to JSON file in realtime if file handle exists
+	if f.jsonFile != nil {
+		finding := URLFindings{
+			URL:     urlStr,
+			Secrets: []Secret{newSecret},
+		}
+
+		data, err := json.MarshalIndent(finding, "", "  ")
+		if err == nil {
+			if !f.firstEntry {
+				f.jsonFile.WriteString(",\n")
+			}
+			f.jsonFile.Write(data)
+			f.firstEntry = false
+		}
+	}
 }
 
 // Increment increments the statistics counters

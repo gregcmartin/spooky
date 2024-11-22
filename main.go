@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"crypto/tls"
 	"encoding/csv"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
@@ -347,32 +346,6 @@ func printStats(stats *models.Statistics) {
 	}
 }
 
-func writeJSONOutput(findings *models.Findings) error {
-	outputFile := *jsonFile
-	if *majestic {
-		if outputFile == "" {
-			outputFile = "spooky_results.json"
-		}
-	} else if outputFile == "" {
-		return nil
-	}
-
-	data, err := json.MarshalIndent(findings, "", "  ")
-	if err != nil {
-		return fmt.Errorf("error marshaling JSON: %v", err)
-	}
-
-	err = ioutil.WriteFile(outputFile, data, 0644)
-	if err != nil {
-		return fmt.Errorf("error writing JSON file: %v", err)
-	}
-
-	if !*silent && !*majestic {
-		fmt.Printf("\n\033[34m[*]\033[37m Results written to: %s\n", outputFile)
-	}
-	return nil
-}
-
 func main() {
 	flag.Parse()
 
@@ -382,6 +355,20 @@ func main() {
 
 	stats := models.NewStatistics()
 	findings := models.NewFindings()
+
+	// Initialize JSON file if output is requested
+	outputFile := *jsonFile
+	if *majestic && outputFile == "" {
+		outputFile = "spooky_results.json"
+	}
+	if outputFile != "" {
+		if err := findings.InitJSONFile(outputFile); err != nil {
+			fmt.Printf("\033[31m[-]\033[37m Error initializing JSON file: %v\n", err)
+			os.Exit(1)
+		}
+		defer findings.CloseJSONFile()
+	}
+
 	scanner := NewScanner(stats, findings, *silent, *detailed, *majestic, *ua, category)
 	urls := make(chan string)
 
@@ -426,8 +413,7 @@ func main() {
 		printStats(stats)
 	}
 
-	if err := writeJSONOutput(findings); err != nil {
-		fmt.Printf("\033[31m[-]\033[37m %v\n", err)
-		os.Exit(1)
+	if outputFile != "" && !*silent && !*majestic {
+		fmt.Printf("\n\033[34m[*]\033[37m Results written to: %s\n", outputFile)
 	}
 }
