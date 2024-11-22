@@ -2,20 +2,20 @@
 
 Spooky can detect a wide range of secrets across multiple categories:
 
-## Cloud & Infrastructure
+## Cloud & Infrastructure [Cloud]
 - AWS (Access Keys, Secret Keys, ARNs)
 - Google Cloud (API Keys, OAuth Tokens, KMS)
 - Azure
 - DigitalOcean
 - Heroku
 
-## Payment Services
+## Payment Services [Payment]
 - Stripe (Public/Private/Restricted Keys)
 - PayPal (Access Tokens)
 - Square (Access/OAuth Tokens)
 - Braintree
 
-## Databases
+## Databases [Database]
 - MongoDB Connection Strings (Standard/SRV)
 - MySQL Credentials
 - PostgreSQL Credentials
@@ -23,7 +23,7 @@ Spooky can detect a wide range of secrets across multiple categories:
 - Cassandra Credentials
 - JDBC Connection Strings
 
-## Social Media & Communication
+## Social Media & Communication [Social]
 - Twitter API Keys
 - Facebook App Secrets
 - GitHub Tokens (Personal/OAuth)
@@ -33,7 +33,7 @@ Spooky can detect a wide range of secrets across multiple categories:
 - YouTube API Keys
 - Telegram Bot Tokens
 
-## Email & Messaging
+## Email & Messaging [Communication]
 - Twilio (Tokens, SIDs)
 - SendGrid
 - Mailgun
@@ -41,7 +41,7 @@ Spooky can detect a wide range of secrets across multiple categories:
 - Postmark
 - Nexmo
 
-## Development & CI/CD
+## Development & CI/CD [Service]
 - NPM Tokens
 - Docker Hub Credentials
 - Travis CI Tokens
@@ -52,7 +52,7 @@ Spooky can detect a wide range of secrets across multiple categories:
 - Artifactory Tokens
 - JWT Tokens
 
-## Authentication & Identity
+## Authentication & Identity [API]
 - Okta API Tokens
 - Auth0 Tokens
 - Private Keys (RSA, DSA, EC, SSH, PGP)
@@ -60,7 +60,7 @@ Spooky can detect a wide range of secrets across multiple categories:
 - API Keys & Secrets
 - Basic Auth Credentials
 
-## Web Frameworks
+## Web Frameworks [Framework]
 - Django (Secret Keys, Signing Keys)
 - Flask (Session Keys)
 - Express (Session/Cookie Secrets)
