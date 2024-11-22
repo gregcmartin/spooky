@@ -86,7 +86,7 @@ func banner() {
 	 ███████║██║     ╚██████╔╝╚██████╔╝██║  ██╗   ██║   
 	 ╚══════╝╚═╝      ╚═════╝  ╚═════╝ ╚═╝  ╚═╝   ╚═╝   
 			   ` + "\033[31m[\033[37mAPI Key Scanner\033[31m]\n" +
-		`                             ` + "\033[31m[\033[37mVersion 1.2\033[31m]\n")
+		`                             ` + "\033[31m[\033[37mVersion 1.3\033[31m]\n")
 }
 
 // compilePatterns pre-compiles all regex patterns for better performance
