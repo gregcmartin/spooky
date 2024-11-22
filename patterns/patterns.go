@@ -54,13 +54,14 @@ var (
 		`(?i)AIza[0-9A-Za-z\-_]{35}`,                     // Google API Key
 	}
 
-	// Communication Service patterns
+	// Communication Service patterns - Improved to reduce false positives
 	CommunicationPatterns = []string{
-		`(?i)SK[0-9a-fA-F]{32}`,                          // Twilio API Key
-		`(?i)AC[a-zA-Z0-9]{32}`,                          // Twilio Account SID
-		`(?i)SG\.[0-9A-Za-z\-_]{22}\.[0-9A-Za-z\-_]{43}`, // SendGrid API Key
-		`(?i)key-[0-9a-zA-Z]{32}`,                        // Mailgun API Key
-		`(?i)[0-9a-f]{32}-us[0-9]{1,2}`,                  // Mailchimp API Key
+		`(?i)(?:twilio|TWILIO).{0,20}SK[0-9a-fA-F]{32}`,                                                // Twilio API Key (requires "twilio" context)
+		`(?i)(?:twilio|TWILIO).{0,20}AC[a-zA-Z0-9]{32}`,                                                // Twilio Account SID (requires "twilio" context)
+		`(?i)SG\.[0-9A-Za-z\-_]{22}\.[0-9A-Za-z\-_]{43}`,                                               // SendGrid API Key (already specific)
+		`(?i)(?:mailgun|MAILGUN).{0,20}key-[0-9a-zA-Z]{32}`,                                            // Mailgun API Key (requires "mailgun" context)
+		`(?i)(?:mailchimp|MAILCHIMP).{0,20}[0-9a-f]{32}-us[0-9]{1,2}`,                                  // Mailchimp API Key (requires "mailchimp" context)
+		`(?i)(?:postmark|POSTMARK).{0,20}[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}`, // Postmark Server Token
 	}
 
 	// Service patterns

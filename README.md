@@ -1,4 +1,4 @@
-# 「👻」 Spooky v1.0
+# 「👻」 Spooky v1.1
 
 <p align="center">API Key and Secret Scanner</p>
 
@@ -116,25 +116,33 @@ cat urls.txt | ./spooky -c Payment -d -o results.json
 When using the `-o` flag, Spooky outputs findings in a structured JSON format. Each finding includes the URL where the secret was found, the category of the secret, and the detected secret value:
 
 ```json
-{
-  "findings": [
-    {
-      "url": "https://example.com/script.js",
-      "category": "AWS",
-      "secret": "[EXAMPLE-AWS-KEY]"
-    },
-    {
-      "url": "https://example.com/config.js",
-      "category": "Payment",
-      "secret": "[EXAMPLE-STRIPE-KEY]"
-    },
-    {
-      "url": "https://example.com/app.js",
-      "category": "Database",
-      "secret": "[EXAMPLE-DATABASE-CONNECTION-STRING]"
-    }
-  ]
-}
+[
+  {
+    "url": "https://example.com",
+    "secrets": [
+      {
+        "category": "AWS",
+        "pattern_type": "AWS Access Key ID",
+        "value": "[EXAMPLE-AWS-KEY]"
+      },
+      {
+        "category": "Payment",
+        "pattern_type": "Stripe Secret Key",
+        "value": "[EXAMPLE-STRIPE-KEY]"
+      }
+    ]
+  },
+  {
+    "url": "https://another-site.com",
+    "secrets": [
+      {
+        "category": "Database",
+        "pattern_type": "MongoDB Connection String",
+        "value": "[EXAMPLE-DATABASE-CONNECTION-STRING]"
+      }
+    ]
+  }
+]
 ```
 
 This JSON format makes it easy to:
