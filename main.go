@@ -9,6 +9,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"os"
 	"regexp"
 	"strings"
@@ -149,38 +150,69 @@ func scanForSecrets(content string, compiledPatterns []CompiledPatterns) {
 	}
 }
 
-func req(url string, compiledPatterns []CompiledPatterns) {
-	if !strings.Contains(url, "http") {
-		fmt.Println("\033[31m[-]\033[37m Send URLs via stdin (ex: cat js.txt | spooky). Each url must contain 'http' string.")
+func readLocalFile(filepath string) (string, error) {
+	content, err := ioutil.ReadFile(filepath)
+	if err != nil {
+		return "", err
+	}
+	return string(content), nil
+}
+
+func req(urlStr string, compiledPatterns []CompiledPatterns) {
+	if !strings.Contains(urlStr, "http") && !strings.Contains(urlStr, "file://") {
+		fmt.Println("\033[31m[-]\033[37m Send URLs via stdin (ex: cat js.txt | spooky). Each url must contain 'http' or 'file://'")
 		os.Exit(0)
 	}
 
-	transp := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-	client := &http.Client{
-		Transport: transp,
-		Timeout:   10 * time.Second,
-	}
-
-	req, err := http.NewRequest("GET", url, nil)
+	parsedURL, err := url.Parse(urlStr)
 	if err != nil {
 		return
 	}
 
-	req.Header.Set("User-Agent", *ua)
-	resp, err := client.Do(req)
-	if err != nil {
-		return
-	}
-	defer resp.Body.Close()
+	var content string
+	if parsedURL.Scheme == "file" {
+		// Remove 'file://' prefix and decode the path
+		filepath := strings.TrimPrefix(urlStr, "file://")
+		filepath, err = url.QueryUnescape(filepath)
+		if err != nil {
+			return
+		}
+		content, err = readLocalFile(filepath)
+		if err != nil {
+			if !*silent {
+				fmt.Printf("\033[31m[-]\033[37m Error reading file %s: %v\n", filepath, err)
+			}
+			return
+		}
+	} else {
+		transp := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+		client := &http.Client{
+			Transport: transp,
+			Timeout:   10 * time.Second,
+		}
 
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return
+		req, err := http.NewRequest("GET", urlStr, nil)
+		if err != nil {
+			return
+		}
+
+		req.Header.Set("User-Agent", *ua)
+		resp, err := client.Do(req)
+		if err != nil {
+			return
+		}
+		defer resp.Body.Close()
+
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return
+		}
+		content = string(body)
 	}
 
-	scanForSecrets(string(body), compiledPatterns)
+	scanForSecrets(content, compiledPatterns)
 }
 
 func init() {
@@ -190,7 +222,7 @@ func init() {
 	detailed = flag.Bool("d", false, "detailed mode")
 	majestic = flag.Bool("m", false, "use Majestic Million list")
 	percent = flag.Int("p", 100, "percentage of Majestic Million to scan (1-100)")
-	flag.StringVar(&category, "c", "all", "category to scan (AWS, API, Cloud, Payment, Database, PrivateKey, Social, Communication, or 'all')")
+	flag.StringVar(&category, "c", "all", "category to scan (AWS, API, Cloud, Payment, Database, PrivateKey, Social, Communication, Service, or 'all')")
 }
 
 func banner() {

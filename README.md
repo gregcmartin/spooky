@@ -140,3 +140,9 @@ Spooky is designed for high performance:
 - Memory-efficient streaming for large datasets
 - Category-based filtering to reduce processing overhead
 - Optimized pattern matching with early exits
+
+## Credits
+
+This project was inspired by and builds upon the work of:
+- [mantra](https://github.com/brosck/mantra) - Original API key scanning concept
+- [Key-Checker](https://github.com/daffainfo/Key-Checker) - Pattern matching and validation techniques
