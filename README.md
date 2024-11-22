@@ -16,78 +16,19 @@ A powerful Go-based security tool designed to detect exposed API keys and secret
 - JSON output support
 - Cross-platform support
 
-## Secret Categories
+## Pattern Support
 
-Spooky can detect a wide range of secrets across multiple categories:
+Spooky supports detection patterns across multiple categories including:
+- Cloud & Infrastructure (AWS, Google Cloud, Azure)
+- Payment Services (Stripe, PayPal, Square)
+- Databases (MongoDB, MySQL, PostgreSQL)
+- Social Media & Communication
+- Email & Messaging Services
+- Development & CI/CD Systems
+- Authentication & Identity
+- Web Frameworks
 
-### Cloud & Infrastructure
-- AWS (Access Keys, Secret Keys, ARNs)
-- Google Cloud (API Keys, OAuth Tokens, KMS)
-- Azure
-- DigitalOcean
-- Heroku
-
-### Payment Services
-- Stripe (Public/Private/Restricted Keys)
-- PayPal (Access Tokens)
-- Square (Access/OAuth Tokens)
-- Braintree
-
-### Databases
-- MongoDB Connection Strings (Standard/SRV)
-- MySQL Credentials
-- PostgreSQL Credentials
-- Redis Passwords
-- Cassandra Credentials
-- JDBC Connection Strings
-
-### Social Media & Communication
-- Twitter API Keys
-- Facebook App Secrets
-- GitHub Tokens (Personal/OAuth)
-- Slack Tokens/Webhooks
-- Instagram Access Tokens
-- LinkedIn Client Secrets
-- YouTube API Keys
-- Telegram Bot Tokens
-
-### Email & Messaging
-- Twilio (Tokens, SIDs)
-- SendGrid
-- Mailgun
-- Mailchimp
-- Postmark
-- Nexmo
-
-### Development & CI/CD
-- NPM Tokens
-- Docker Hub Credentials
-- Travis CI Tokens
-- Circle CI Tokens
-- Jenkins API Tokens
-- Sentry Auth Tokens
-- SonarQube Tokens
-- Artifactory Tokens
-- JWT Tokens
-
-### Authentication & Identity
-- Okta API Tokens
-- Auth0 Tokens
-- Private Keys (RSA, DSA, EC, SSH, PGP)
-- Bearer Tokens
-- API Keys & Secrets
-- Basic Auth Credentials
-
-### Web Frameworks
-- Django (Secret Keys, Signing Keys)
-- Flask (Session Keys)
-- Express (Session/Cookie Secrets)
-- Laravel (App Keys)
-- Rails (Secret Key Base)
-- ASP.NET (ViewState, Machine Keys)
-- Symfony (App Secrets)
-- JSF (ViewState Secrets)
-- Telerik (Encryption/Hash Keys)
+See [PATTERNS.md](PATTERNS.md) for a complete list of supported patterns and secret types.
 
 ## Command Line Options
 
@@ -150,16 +91,6 @@ When using the `-o` flag, Spooky outputs findings in a structured JSON format. E
         "category": "Framework",
         "pattern_type": "Django Secret Key",
         "value": "[EXAMPLE-DJANGO-KEY]"
-      }
-    ]
-  },
-  {
-    "url": "https://another-site.com",
-    "secrets": [
-      {
-        "category": "Database",
-        "pattern_type": "MongoDB Connection String",
-        "value": "[EXAMPLE-DATABASE-CONNECTION-STRING]"
       }
     ]
   }
