@@ -26,7 +26,7 @@ var AllPatternTypes = []PatternType{
 
 	// API Key Patterns
 	{"Bearer Token", "API", `(?i)(?:bearer|Bearer)(?:\s+|=|:)['"]?[a-zA-Z0-9_\-\.=]{30,}['"]?`},
-	{"Authorization Token", "API", `(?i)(?:token|Token)(?:\s+|=|:)['"]?[a-zA-Z0-9_\-\.=]{30,}['"]?`},
+	{"Authorization Token", "API", `(?i)(?<!class=["'])(?<!className=["'])(?:auth[_-]?token|access[_-]?token|api[_-]?token|authentication[_-]?token)[\s]*(?:=|:)[\s]*["'][a-zA-Z0-9_\-\.=]{30,}["']`},
 	{"Generic API Key", "API", `(?i)api[_-]?key(?:[\s]*(?:=|:)[\s]*['"])[a-zA-Z0-9]{32,}['"]`},
 	{"Client Secret", "API", `(?i)client[_-]?secret(?:[\s]*(?:=|:)[\s]*['"])[a-zA-Z0-9]{32,}['"]`},
 	{"Basic Auth", "API", `(?i)basic\s+[a-zA-Z0-9+/]{40,}={0,2}(?:[^a-zA-Z0-9]|$)`},
@@ -84,7 +84,7 @@ var AllPatternTypes = []PatternType{
 	// Cloud Service Patterns
 	{"AWS Access Key ID", "Cloud", `(?i)(?:^|[^a-zA-Z0-9])AKIA[0-9A-Z]{16}(?:[^a-zA-Z0-9]|$)`},
 	{"Google OAuth", "Cloud", `(?i)(?:^|[^a-zA-Z0-9])ya29\.[0-9A-Za-z_\-]{68}(?:[^a-zA-Z0-9]|$)`},
-	{"Google API Key", "Cloud", `(?i)(?:^|[^a-zA-Z0-9])AIza[0-9A-Za-z\-_]{35}(?:[^a-zA-Z0-9]|$)`},
+	{"Google API Key", "Cloud", `(?i)["']?(AIza[0-9A-Za-z\-_]{35})["']?`},
 	{"Google Cloud Secret", "Cloud", `(?i)projects/[a-zA-Z0-9-]+/secrets/[a-zA-Z0-9-_]+(?:/versions/[0-9]+)?`},
 	{"Google Cloud KMS", "Cloud", `(?i)projects/[a-zA-Z0-9-]+/locations/[a-zA-Z0-9-]+/keyRings/[a-zA-Z0-9-]+/cryptoKeys/[a-zA-Z0-9-]+`},
 
