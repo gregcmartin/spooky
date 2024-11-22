@@ -15,15 +15,62 @@ A powerful Go-based security tool designed to detect exposed API keys and secret
 
 ## Secret Categories
 
-Spooky can detect secrets from various categories:
-- AWS (Access Keys, Secret Keys)
-- API Keys (Generic API Keys, Bearer Tokens)
-- Cloud Services (Firebase, GCM, Google, Azure)
-- Payment Services (Stripe, PayPal, Square)
-- Database Credentials (MongoDB, MySQL, PostgreSQL)
-- Private Keys (RSA, SSH)
-- Social Media (Twitter, Facebook, GitHub)
-- Communication Services (Twilio, SendGrid, Mailgun)
+Spooky can detect a wide range of secrets across multiple categories:
+
+### Cloud & Infrastructure
+- AWS (Access Keys, Secret Keys, ARNs)
+- Google Cloud (API Keys, OAuth Tokens)
+- Azure
+- DigitalOcean
+- Heroku
+
+### Payment Services
+- Stripe (Public/Private Keys)
+- PayPal
+- Square
+- Braintree
+
+### Databases
+- MongoDB Connection Strings
+- MySQL Credentials
+- PostgreSQL Credentials
+- Redis Passwords
+- Cassandra Credentials
+- JDBC Connection Strings
+
+### Social Media & Communication
+- Twitter API Keys
+- Facebook App Secrets
+- GitHub Tokens
+- Slack Tokens/Webhooks
+- Instagram Access Tokens
+- LinkedIn Client Secrets
+- YouTube API Keys
+
+### Email & Messaging
+- Twilio (Tokens, SIDs)
+- SendGrid
+- Mailgun
+- Mailchimp
+- Postmark
+- Nexmo
+
+### Development & CI/CD
+- NPM Tokens
+- Docker Hub Credentials
+- Travis CI Tokens
+- Circle CI Tokens
+- Jenkins API Tokens
+- Sentry Auth Tokens
+- SonarQube Tokens
+- Artifactory Tokens
+
+### Authentication & Identity
+- Okta API Tokens
+- Auth0 Tokens
+- Private Keys (RSA, SSH, PGP)
+- Bearer Tokens
+- API Keys & Secrets
 
 ## Command Line Options
 
@@ -33,7 +80,7 @@ Spooky can detect secrets from various categories:
 - `-d`: Detailed mode (shows line numbers for matches)
 - `-m`: Use Majestic Million list for scanning
 - `-p`: Percentage of Majestic Million to scan (1-100, default: 100)
-- `-c`: Category to scan (AWS, API, Cloud, Payment, Database, PrivateKey, Social, Communication, or 'all')
+- `-c`: Category to scan (AWS, API, Cloud, Payment, Database, PrivateKey, Social, Communication, Service, or 'all')
 
 ## Usage Examples
 
@@ -92,3 +139,4 @@ Spooky is designed for high performance:
 - Concurrent scanning with configurable threads
 - Memory-efficient streaming for large datasets
 - Category-based filtering to reduce processing overhead
+- Optimized pattern matching with early exits
