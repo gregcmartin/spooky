@@ -229,6 +229,15 @@ func findMatchLocation(urlStr, content string, match string) string {
 	return urlStr
 }
 
+// getLineNumber returns the line number for a match in the content
+func getLineNumber(content, match string) int {
+	idx := strings.Index(content, match)
+	if idx == -1 {
+		return 1 // Default to line 1 if match not found
+	}
+	return strings.Count(content[:idx], "\n") + 1
+}
+
 // ScanContent scans content for secrets
 func (s *Scanner) ScanContent(urlStr string, content string) {
 	if content == "" {
@@ -249,7 +258,7 @@ func (s *Scanner) ScanContent(urlStr string, content string) {
 
 			// Find the location of the match
 			location := findMatchLocation(urlStr, content, match)
-			displayLocation := fmt.Sprintf("line %d", strings.Count(content[:strings.Index(content, match)], "\n")+1)
+			displayLocation := fmt.Sprintf("line %d", getLineNumber(content, match))
 
 			if !s.Silent && !s.Majestic {
 				if s.Detailed {
