@@ -26,6 +26,8 @@ type CompiledPatterns struct {
 	Category    string
 	PatternType string
 	Pattern     *regexp.Regexp
+	RiskLevel   string
+	Impact      string
 }
 
 // Scanner handles the scanning operations
@@ -38,6 +40,7 @@ type Scanner struct {
 	UserAgent    string
 	Category     string
 	CompiledPats []CompiledPatterns
+	PatternMap   map[string]patterns.PatternType // Map for quick pattern lookup
 }
 
 var (
@@ -64,16 +67,25 @@ func init() {
 
 // NewScanner creates a new Scanner instance
 func NewScanner(stats *models.Statistics, findings *models.Findings, silent, detailed, majestic bool, ua, category string) *Scanner {
-	return &Scanner{
-		Stats:        stats,
-		Findings:     findings,
-		Silent:       silent,
-		Detailed:     detailed,
-		Majestic:     majestic,
-		UserAgent:    ua,
-		Category:     category,
-		CompiledPats: compilePatterns(category),
+	scanner := &Scanner{
+		Stats:      stats,
+		Findings:   findings,
+		Silent:     silent,
+		Detailed:   detailed,
+		Majestic:   majestic,
+		UserAgent:  ua,
+		Category:   category,
+		PatternMap: make(map[string]patterns.PatternType),
 	}
+
+	// Initialize pattern map for quick lookups
+	for _, pt := range patterns.AllPatternTypes {
+		key := fmt.Sprintf("%s:%s", pt.Category, pt.Name)
+		scanner.PatternMap[key] = pt
+	}
+
+	scanner.CompiledPats = compilePatterns(category)
+	return scanner
 }
 
 func banner() {
@@ -116,6 +128,8 @@ func compilePatterns(category string) []CompiledPatterns {
 			Category:    pt.Category,
 			PatternType: pt.Name,
 			Pattern:     re,
+			RiskLevel:   pt.RiskLevel,
+			Impact:      pt.Impact,
 		})
 	}
 
@@ -272,6 +286,10 @@ func (s *Scanner) ScanContent(urlStr string, content string) {
 			location := findMatchLocation(urlStr, content, match)
 			displayLocation := fmt.Sprintf("line %d", getLineNumber(content, match))
 
+			// Get pattern info from map
+			key := fmt.Sprintf("%s:%s", cp.Category, cp.PatternType)
+			pt := s.PatternMap[key]
+
 			if !s.Silent && !s.Majestic {
 				if s.Detailed {
 					fmt.Printf("\033[32m[+]\033[37m Found %s (%s) at %s: %s\n", cp.Category, cp.PatternType, displayLocation, cleanedMatch)
@@ -280,7 +298,7 @@ func (s *Scanner) ScanContent(urlStr string, content string) {
 				}
 			}
 			s.Stats.Increment(cp.Category)
-			s.Findings.Add(urlStr, cp.Category, cp.PatternType, cleanedMatch, location)
+			s.Findings.Add(urlStr, cp.Category, cp.PatternType, cleanedMatch, location, pt.RiskLevel, pt.Impact)
 		}
 	}
 }

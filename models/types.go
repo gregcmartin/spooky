@@ -21,6 +21,8 @@ type Secret struct {
 	PatternType string `json:"pattern_type"`
 	Value       string `json:"value"`
 	URI         string `json:"uri"`
+	RiskLevel   string `json:"risk_level"`
+	Impact      string `json:"impact"`
 }
 
 // URLFindings represents all findings for a specific URL
@@ -96,7 +98,7 @@ func (f *Findings) MarshalJSON() ([]byte, error) {
 }
 
 // Add adds a new secret finding and writes it to JSON file immediately
-func (f *Findings) Add(urlStr, category, patternType, secret, uri string) {
+func (f *Findings) Add(urlStr, category, patternType, secret, uri, riskLevel, impact string) {
 	f.Mu.Lock()
 	defer f.Mu.Unlock()
 
@@ -116,6 +118,8 @@ func (f *Findings) Add(urlStr, category, patternType, secret, uri string) {
 		PatternType: patternType,
 		Value:       secret,
 		URI:         uri,
+		RiskLevel:   riskLevel,
+		Impact:      impact,
 	}
 
 	f.Sites[urlStr].Secrets = append(f.Sites[urlStr].Secrets, newSecret)
