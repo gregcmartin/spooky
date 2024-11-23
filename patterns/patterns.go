@@ -32,11 +32,11 @@ var AllPatternTypes = []PatternType{
 	{"Basic Auth", "API", `(?i)basic\s+[a-zA-Z0-9+/]{40,}={0,2}(?:[^a-zA-Z0-9]|$)`},
 
 	// Payment Service Patterns
-	{"Stripe Secret Key", "Payment", `(?i)(?:^|[^a-zA-Z0-9])sk_live_[0-9a-zA-Z]{24,}(?:[^a-zA-Z0-9]|$)`},
-	{"Stripe Public Key", "Payment", `(?i)(?:^|[^a-zA-Z0-9])pk_live_[0-9a-zA-Z]{24,}(?:[^a-zA-Z0-9]|$)`},
-	{"Stripe Restricted Key", "Payment", `(?i)(?:^|[^a-zA-Z0-9])rk_live_[0-9a-zA-Z]{24,}(?:[^a-zA-Z0-9]|$)`},
-	{"Square Access Token", "Payment", `(?i)(?:^|[^a-zA-Z0-9])sq0csp-[0-9a-zA-Z\-_]{43}(?:[^a-zA-Z0-9]|$)`},
-	{"Square OAuth Token", "Payment", `(?i)(?:^|[^a-zA-Z0-9])sqOatp-[0-9a-zA-Z\-_]{22}(?:[^a-zA-Z0-9]|$)`},
+	{"Stripe Secret Key", "Payment", `(?i)(?:^|[^a-zA-Z0-9])sk_live_[0-9a-zA-Z]{24}`},
+	{"Stripe Public Key", "Payment", `(?i)(?:^|[^a-zA-Z0-9])pk_live_[0-9a-zA-Z]{24}`},
+	{"Stripe Restricted Key", "Payment", `(?i)(?:^|[^a-zA-Z0-9])rk_live_[0-9a-zA-Z]{24}`},
+	{"Square Access Token", "Payment", `(?i)(?:^|[^a-zA-Z0-9])sq0csp-[0-9a-zA-Z\-_]{43}`},
+	{"Square OAuth Token", "Payment", `(?i)(?:^|[^a-zA-Z0-9])sqOatp-[0-9a-zA-Z\-_]{22}`},
 	{"PayPal Access Token", "Payment", `(?i)access_token\$production\$[0-9a-z]{16}\$[0-9a-f]{32}`},
 
 	// Database Patterns
@@ -54,37 +54,37 @@ var AllPatternTypes = []PatternType{
 	{"EC Private Key", "PrivateKey", `(?m)-----BEGIN\s+EC\s+PRIVATE\s+KEY-----(?:\r?\n(?:(?!-----)[\s\S])*?)-----END\s+EC\s+PRIVATE\s+KEY-----`},
 
 	// Social Media Patterns
-	{"GitHub Personal Access Token", "Social", `(?i)(?:^|[^a-zA-Z0-9])ghp_[0-9a-zA-Z]{36}(?:[^a-zA-Z0-9]|$)`},
-	{"GitHub Fine-grained Token", "Social", `(?i)(?:^|[^a-zA-Z0-9])github_pat_[0-9a-zA-Z]{22}_[0-9a-zA-Z]{59}(?:[^a-zA-Z0-9]|$)`},
-	{"Slack Token", "Social", `(?i)(?:^|[^a-zA-Z0-9])xox[baprs]-[0-9a-zA-Z]{10,48}(?:[^a-zA-Z0-9]|$)`},
-	{"Twitter Access Token", "Social", `(?i)(?:^|[^a-zA-Z0-9])[1-9][0-9]+-[0-9a-zA-Z]{40}(?:[^a-zA-Z0-9]|$)`},
-	{"Facebook Access Token", "Social", `(?i)(?:^|[^a-zA-Z0-9])EAACEdEose0cBA[0-9A-Za-z]+(?:[^a-zA-Z0-9]|$)`},
-	{"Google API Key", "Social", `(?i)(?:^|[^a-zA-Z0-9])AIza[0-9A-Za-z\-_]{35}(?:[^a-zA-Z0-9]|$)`},
-	{"Google OAuth", "Social", `(?i)(?:^|[^a-zA-Z0-9])ya29\.[0-9A-Za-z_\-]{68}(?:[^a-zA-Z0-9]|$)`},
+	{"GitHub Personal Access Token", "Social", `(?i)(?:^|[^a-zA-Z0-9])ghp_[0-9a-zA-Z]{36}`},
+	{"GitHub Fine-grained Token", "Social", `(?i)(?:^|[^a-zA-Z0-9])github_pat_[0-9a-zA-Z]{22}_[0-9a-zA-Z]{59}`},
+	{"Slack Token", "Social", `(?i)(?:^|[^a-zA-Z0-9])xox[baprs]-[0-9a-zA-Z]{10,48}`},
+	{"Twitter Access Token", "Social", `(?i)(?:^|[^a-zA-Z0-9])[1-9][0-9]+-[0-9a-zA-Z]{40}`},
+	{"Facebook Access Token", "Social", `(?i)(?:^|[^a-zA-Z0-9])EAACEdEose0cBA[0-9A-Za-z]+`},
+	{"Google API Key", "Social", `(?i)(?:^|[^a-zA-Z0-9])AIza[0-9A-Za-z\-_]{35}`},
+	{"Google OAuth", "Social", `(?i)(?:^|[^a-zA-Z0-9])ya29\.[0-9A-Za-z_\-]{68}`},
 
 	// Communication Service Patterns
-	{"Twilio API Key", "Communication", `(?i)(?:twilio|TWILIO)(?:[^a-zA-Z0-9]|_)SK[0-9a-fA-F]{32}(?:[^a-zA-Z0-9]|$)`},
-	{"Twilio Account SID", "Communication", `(?i)(?:twilio|TWILIO)(?:[^a-zA-Z0-9]|_)AC[a-zA-Z0-9]{32}(?:[^a-zA-Z0-9]|$)`},
-	{"SendGrid API Key", "Communication", `(?i)(?:^|[^a-zA-Z0-9])SG\.[0-9A-Za-z\-_]{22}\.[0-9A-Za-z\-_]{43}(?:[^a-zA-Z0-9]|$)`},
-	{"Mailgun API Key", "Communication", `(?i)(?:mailgun|MAILGUN)(?:[^a-zA-Z0-9]|_)key-[0-9a-zA-Z]{32}(?:[^a-zA-Z0-9]|$)`},
-	{"Mailchimp API Key", "Communication", `(?i)(?:mailchimp|MAILCHIMP)(?:[^a-zA-Z0-9]|_)[0-9a-f]{32}-us[0-9]{1,2}(?:[^a-zA-Z0-9]|$)`},
-	{"Postmark Server Token", "Communication", `(?i)(?:postmark|POSTMARK)(?:[^a-zA-Z0-9]|_)[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}(?:[^a-zA-Z0-9]|$)`},
+	{"Twilio API Key", "Communication", `(?i)(?:twilio|TWILIO)(?:[^a-zA-Z0-9]|_)SK[0-9a-fA-F]{32}`},
+	{"Twilio Account SID", "Communication", `(?i)(?:twilio|TWILIO)(?:[^a-zA-Z0-9]|_)AC[a-zA-Z0-9]{32}`},
+	{"SendGrid API Key", "Communication", `(?i)(?:^|[^a-zA-Z0-9])SG\.[0-9A-Za-z\-_]{22}\.[0-9A-Za-z\-_]{43}`},
+	{"Mailgun API Key", "Communication", `(?i)(?:mailgun|MAILGUN)(?:[^a-zA-Z0-9]|_)key-[0-9a-zA-Z]{32}`},
+	{"Mailchimp API Key", "Communication", `(?i)(?:mailchimp|MAILCHIMP)(?:[^a-zA-Z0-9]|_)[0-9a-f]{32}-us[0-9]{1,2}`},
+	{"Postmark Server Token", "Communication", `(?i)(?:postmark|POSTMARK)(?:[^a-zA-Z0-9]|_)[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}`},
 
 	// Service Patterns
-	{"NPM Token", "Service", `(?i)(?:^|[^a-zA-Z0-9])npm_[0-9a-zA-Z]{36}(?:[^a-zA-Z0-9]|$)`},
+	{"NPM Token", "Service", `(?i)(?:^|[^a-zA-Z0-9])npm_[0-9a-zA-Z]{36}`},
 	{"Docker Auth", "Service", `(?i)docker[^a-zA-Z0-9]*auth[^a-zA-Z0-9]*config.*['"]\s*auth["']\s*:\s*["'][A-Za-z0-9+/=]+["']`},
 	{"Travis CI Token", "Service", `(?i)TRAVIS[^a-zA-Z0-9]*TOKEN[^a-zA-Z0-9]*=\s*["'][0-9a-zA-Z]{40}["']`},
 	{"Circle CI Token", "Service", `(?i)circleci[^a-zA-Z0-9]*token[^a-zA-Z0-9]*["'][0-9a-zA-Z]{40}["']`},
 	{"SonarQube Token", "Service", `(?i)sonar\.login\s*=\s*["'][0-9a-zA-Z]{40}["']`},
 	{"Vault Token", "Service", `(?i)VAULT_TOKEN\s*=\s*["'][0-9a-zA-Z\-_]{86}["']`},
-	{"GitHub Token", "Service", `(?i)(?:^|[^a-zA-Z0-9])gh[pousr]_[A-Za-z0-9_]{36}(?:[^a-zA-Z0-9]|$)`},
-	{"JWT Token", "Service", `(?i)(?:^|[^a-zA-Z0-9])ey[I-L][\w-]+\.ey[\w-]+\.[\w-]+(?:[^a-zA-Z0-9]|$)`},
-	{"Heroku API Key", "Service", `(?i)heroku[^a-zA-Z0-9]*[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}(?:[^a-zA-Z0-9]|$)`},
+	{"GitHub Token", "Service", `(?i)(?:^|[^a-zA-Z0-9])gh[pousr]_[A-Za-z0-9_]{36}`},
+	{"JWT Token", "Service", `(?i)(?:^|[^a-zA-Z0-9/])ey[I-L][\w-]+\.ey[\w-]+\.[\w-]+`},
+	{"Heroku API Key", "Service", `(?i)heroku[^a-zA-Z0-9]*[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}`},
 
 	// Cloud Service Patterns
-	{"AWS Access Key ID", "Cloud", `(?i)(?:^|[^a-zA-Z0-9])AKIA[0-9A-Z]{16}(?:[^a-zA-Z0-9]|$)`},
-	{"Google OAuth", "Cloud", `(?i)(?:^|[^a-zA-Z0-9])ya29\.[0-9A-Za-z_\-]{68}(?:[^a-zA-Z0-9]|$)`},
-	{"Google API Key", "Cloud", `(?i)["']?(AIza[0-9A-Za-z\-_]{35})["']?`},
+	{"AWS Access Key ID", "Cloud", `(?i)(?:^|[^a-zA-Z0-9])AKIA[0-9A-Z]{16}`},
+	{"Google OAuth", "Cloud", `(?i)(?:^|[^a-zA-Z0-9])ya29\.[0-9A-Za-z_\-]{68}`},
+	{"Google API Key", "Cloud", `(?i)(?:^|[^a-zA-Z0-9])AIza[0-9A-Za-z\-_]{35}`},
 	{"Google Cloud Secret", "Cloud", `(?i)projects/[a-zA-Z0-9-]+/secrets/[a-zA-Z0-9-_]+(?:/versions/[0-9]+)?`},
 	{"Google Cloud KMS", "Cloud", `(?i)projects/[a-zA-Z0-9-]+/locations/[a-zA-Z0-9-]+/keyRings/[a-zA-Z0-9-]+/cryptoKeys/[a-zA-Z0-9-]+`},
 

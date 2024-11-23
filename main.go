@@ -88,6 +88,15 @@ func banner() {
 		`                             ` + "\033[31m[\033[37mVersion 1.4\033[31m]\n")
 }
 
+// cleanMatch removes unwanted characters from matches
+func cleanMatch(match string) string {
+	// Remove leading/trailing quotes and slashes
+	match = strings.Trim(match, `"'/`)
+	// Remove escaped quotes
+	match = strings.ReplaceAll(match, `\"`, "")
+	return match
+}
+
 // compilePatterns pre-compiles all regex patterns for better performance
 func compilePatterns(category string) []CompiledPatterns {
 	var compiled []CompiledPatterns
@@ -256,19 +265,22 @@ func (s *Scanner) ScanContent(urlStr string, content string) {
 				continue
 			}
 
+			// Clean the match
+			cleanedMatch := cleanMatch(match)
+
 			// Find the location of the match
 			location := findMatchLocation(urlStr, content, match)
 			displayLocation := fmt.Sprintf("line %d", getLineNumber(content, match))
 
 			if !s.Silent && !s.Majestic {
 				if s.Detailed {
-					fmt.Printf("\033[32m[+]\033[37m Found %s (%s) at %s: %s\n", cp.Category, cp.PatternType, displayLocation, match)
+					fmt.Printf("\033[32m[+]\033[37m Found %s (%s) at %s: %s\n", cp.Category, cp.PatternType, displayLocation, cleanedMatch)
 				} else {
 					fmt.Printf("\033[32m[+]\033[37m Found %s (%s) at %s\n", cp.Category, cp.PatternType, displayLocation)
 				}
 			}
 			s.Stats.Increment(cp.Category)
-			s.Findings.Add(urlStr, cp.Category, cp.PatternType, match, location)
+			s.Findings.Add(urlStr, cp.Category, cp.PatternType, cleanedMatch, location)
 		}
 	}
 }
