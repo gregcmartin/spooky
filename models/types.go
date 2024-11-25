@@ -37,6 +37,7 @@ type Findings struct {
 	Mu         *sync.Mutex             // Exported for scanner package
 	jsonFile   *os.File                // File handle for realtime JSON writing
 	firstEntry bool                    // Track if this is the first entry
+	written    map[string]bool         // Track which URLs have been written
 }
 
 // NewFindings creates a new Findings instance
@@ -45,6 +46,7 @@ func NewFindings() *Findings {
 		Sites:      make(map[string]*URLFindings),
 		Mu:         &sync.Mutex{},
 		firstEntry: true,
+		written:    make(map[string]bool),
 	}
 }
 
@@ -125,12 +127,8 @@ func (f *Findings) Add(urlStr, category, patternType, secret, uri, riskLevel, im
 	f.Sites[urlStr].Secrets = append(f.Sites[urlStr].Secrets, newSecret)
 
 	// Write to JSON file in realtime if file handle exists
-	if f.jsonFile != nil {
-		finding := URLFindings{
-			URL:     urlStr,
-			Secrets: []Secret{newSecret},
-		}
-
+	if f.jsonFile != nil && !f.written[urlStr] {
+		finding := f.Sites[urlStr]
 		data, err := json.MarshalIndent(finding, "", "  ")
 		if err == nil {
 			if !f.firstEntry {
@@ -138,6 +136,7 @@ func (f *Findings) Add(urlStr, category, patternType, secret, uri, riskLevel, im
 			}
 			f.jsonFile.Write(data)
 			f.firstEntry = false
+			f.written[urlStr] = true
 		}
 	}
 }

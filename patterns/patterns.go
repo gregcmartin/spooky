@@ -29,7 +29,7 @@ var AllPatternTypes = []PatternType{
 	// API Key Patterns
 	{"Bearer Token", "API", `(?i)(?:bearer|Bearer)(?:\s+|=|:)['"]?[a-zA-Z0-9_\-\.=]{30,}['"]?`, "Medium", "API authentication token exposed"},
 	{"Authorization Token", "API", `(?i)(?<!class=["'])(?<!className=["'])(?:auth[_-]?token|access[_-]?token|api[_-]?token|authentication[_-]?token)[\s]*(?:=|:)[\s]*["'][a-zA-Z0-9_\-\.=]{30,}["']`, "Medium", "API authorization token exposed"},
-	{"Generic API Key", "API", `(?i)api[_-]?key(?:[\s]*(?:=|:)[\s]*['"])[a-zA-Z0-9]{32,}['"]`, "Medium", "Generic API key exposed"},
+	{"Generic API Key", "API", `(?i)api[_-]?key[\s]*(?:=|:)[\s]*["']([a-zA-Z0-9]{32,})["']`, "Medium", "Generic API key exposed"},
 	{"Client Secret", "API", `(?i)client[_-]?secret(?:[\s]*(?:=|:)[\s]*['"])[a-zA-Z0-9]{32,}['"]`, "Medium", "OAuth client secret exposed"},
 	{"Basic Auth", "API", `(?i)basic\s+[a-zA-Z0-9+/]{40,}={0,2}(?:[^a-zA-Z0-9]|$)`, "High", "Basic authentication credentials exposed"},
 
