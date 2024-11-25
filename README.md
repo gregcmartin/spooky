@@ -38,6 +38,7 @@ See [PATTERNS.md](PATTERNS.md) for a complete list of supported patterns and sec
 - `-d`: Detailed mode (shows line numbers for matches)
 - `-m`: Use Majestic Million list for scanning
 - `-p`: Percentage of Majestic Million to scan (1-100, default: 100)
+- `-reverse`: Scan Majestic Million list in reverse order (from least to most popular)
 - `-c`: Category to scan (AWS, API, Cloud, Payment, Database, PrivateKey, Social, Communication, Service, Framework, or 'all')
 - `-o`: Output results to JSON file (e.g., "results.json")
 
@@ -56,6 +57,11 @@ Scan Majestic Million top sites:
 Scan top 10% of Majestic Million:
 ```bash
 ./spooky -m -p 10
+```
+
+Scan bottom 10% of Majestic Million (least popular sites):
+```bash
+./spooky -m -p 10 -reverse
 ```
 
 Scan only for AWS credentials:
